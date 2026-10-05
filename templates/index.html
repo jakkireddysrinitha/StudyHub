@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>StudyHub</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+<body>
+
+<div class="app-container">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">
+                📚
+            </div>
+
+            <div>
+                <h1>StudyHub</h1>
+                <p>AI Study Organizer</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <button
+                type="button"
+                class="nav-item active"
+                data-page="dashboard"
+            >
+                <span>🏠</span>
+                Dashboard
+            </button>
+
+            <button
+                type="button"
+                class="nav-item"
+                data-page="resources"
+            >
+                <span>📚</span>
+                My Resources
+            </button>
+
+            <button
+                type="button"
+                class="nav-item"
+                data-page="assistant"
+            >
+                <span>✨</span>
+                AI Assistant
+            </button>
+
+        </nav>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        <!-- Dashboard -->
+
+        <section
+            class="page-section active"
+            id="dashboard-page"
+        >
+
+            <div class="hero-section">
+
+                <div class="hero-content">
+
+                    <span class="hero-badge">
+                        AI-POWERED STUDY
+                    </span>
+
+                    <h2>
+                        Organize.
+                        Learn.
+                        <span>Understand.</span>
+                    </h2>
+
+                    <p>
+                        Upload your study resources and use
+                        AI to search, summarize, and understand
+                        your learning material.
+                    </p>
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        id="hero-upload-button"
+                    >
+                        Upload PDF
+                    </button>
+
+                </div>
+
+                <div class="hero-visual">
+                    <div class="hero-book">
+                        📖
+                    </div>
+
+                    <div class="hero-stars">
+                        ✨
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+                    <div class="stat-icon">📚</div>
+
+                    <div>
+                        <span class="stat-label">
+                            Total Resources
+                        </span>
+
+                        <strong id="total-resources">
+                            0
+                        </strong>
+                    </div>
+                </div>
+
+
+                <div class="stat-card">
+                    <div class="stat-icon">🗂️</div>
+
+                    <div>
+                        <span class="stat-label">
+                            Categories
+                        </span>
+
+                        <strong id="total-categories">
+                            0
+                        </strong>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="section-header">
+
+                <div>
+                    <h3>Recent Resources</h3>
+
+                    <p>
+                        Your recently uploaded study materials
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    class="text-button"
+                    data-page-target="resources"
+                >
+                    View All
+                </button>
+
+            </div>
+
+
+            <div
+                class="resource-grid"
+                id="recent-resources"
+            ></div>
+
+        </section>
+
+
+        <!-- My Resources -->
+
+        <section
+            class="page-section"
+            id="resources-page"
+        >
+
+            <div class="page-header">
+
+                <div>
+                    <span class="page-eyebrow">
+                        LIBRARY
+                    </span>
+
+                    <h2>My Resources</h2>
+
+                    <p>
+                        Manage all your uploaded study materials.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="upload-card">
+
+                <div class="upload-info">
+
+                    <div class="upload-icon">
+                        📄
+                    </div>
+
+                    <div>
+                        <h3>Upload a PDF</h3>
+
+                        <p>
+                            Add a PDF study resource to your
+                            StudyHub library.
+                        </p>
+                    </div>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    id="upload-button"
+                >
+                    Choose PDF
+                </button>
+
+                <input
+                    type="file"
+                    id="file-input"
+                    accept=".pdf,application/pdf"
+                    hidden
+                >
+
+            </div>
+
+
+            <div class="resource-toolbar">
+
+                <div class="search-wrapper">
+
+                    <span class="search-icon">
+                        🔍
+                    </span>
+
+                    <input
+                        type="text"
+                        id="resource-search"
+                        placeholder="Search resources..."
+                    >
+
+                </div>
+
+
+                <select
+                    id="category-filter"
+                    class="filter-select"
+                >
+                    <option value="">
+                        All Categories
+                    </option>
+                </select>
+
+
+                <button
+                    type="button"
+                    class="secondary-button"
+                    id="clear-all-resources"
+                >
+                    Clear All
+                </button>
+
+            </div>
+
+
+            <div
+                class="resource-grid"
+                id="resource-grid"
+            ></div>
+
+        </section>
+
+
+        <!-- AI Assistant -->
+
+        <section
+            class="page-section"
+            id="assistant-page"
+        >
+
+            <div class="page-header">
+
+                <div>
+                    <span class="page-eyebrow">
+                        AI ASSISTANT
+                    </span>
+
+                    <h2>Study with AI</h2>
+
+                    <p>
+                        Ask questions using your uploaded study
+                        resources.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="assistant-card">
+
+                <div class="assistant-top">
+
+                    <div class="assistant-title">
+
+                        <div class="assistant-icon">
+                            ✨
+                        </div>
+
+                        <div>
+                            <h3>
+                                Ask StudyHub AI
+                            </h3>
+
+                            <p>
+                                Answers are based only on
+                                your uploaded resources.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="assistant-filter">
+
+                        <label for="assistant-resource-filter">
+                            Search in
+                        </label>
+
+                        <select
+                            id="assistant-resource-filter"
+                            class="filter-select"
+                        >
+                            <option value="">
+                                All Resources
+                            </option>
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="chat-history"
+                    id="chat-history"
+                >
+
+                    <div class="empty-chat">
+                        <div class="empty-chat-icon">
+                            ✨
+                        </div>
+
+                        <h3>
+                            Ask anything about your resources
+                        </h3>
+
+                        <p>
+                            Questions will be answered using
+                            your uploaded study materials.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="question-box">
+
+                    <label for="question">
+                        Your Question
+                    </label>
+
+                    <textarea
+                        id="question"
+                        rows="5"
+                        placeholder="Ask a question about your study material..."
+                    ></textarea>
+
+
+                    <div class="question-hint">
+                        Press Ctrl + Enter to ask
+                    </div>
+
+
+                    <div class="question-actions">
+
+                        <button
+                            type="button"
+                            class="primary-button"
+                            id="ask-button"
+                        >
+                            Ask AI ✨
+                        </button>
+
+                        <button
+                            type="button"
+                            class="secondary-button"
+                            id="clear-question"
+                        >
+                            Clear
+                        </button>
+
+                        <button
+                            type="button"
+                            class="secondary-button"
+                            id="clear-chat"
+                        >
+                            Clear Chat
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- PDF Preview Modal -->
+
+<div
+    id="preview-modal"
+    class="preview-modal"
+>
+
+    <div class="preview-modal-content">
+
+        <div class="preview-modal-header">
+
+            <h3 id="preview-title">
+                PDF Preview
+            </h3>
+
+            <button
+                type="button"
+                class="preview-close"
+                id="preview-close"
+            >
+                ✕
+            </button>
+
+        </div>
+
+        <iframe
+            id="preview-frame"
+            src=""
+            title="PDF Preview"
+        ></iframe>
+
+    </div>
+
+</div>
+
+
+<script
+    src="{{ url_for('static', filename='script.js') }}"
+></script>
+
+</body>
+</html>
