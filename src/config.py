@@ -12,10 +12,30 @@ load_dotenv()
 
 
 # ============================================================
-# BASE PATH
+# PROJECT DIRECTORY
 # ============================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# ============================================================
+# STORAGE ROOT
+# ============================================================
+
+# Local development:
+#     project folder is used.
+#
+# Render:
+#     set STUDYHUB_STORAGE_DIR=/var/data
+#
+# This lets SQLite, uploaded PDFs and ChromaDB
+# live on a persistent Render disk.
+STORAGE_ROOT = Path(
+    os.getenv(
+        "STUDYHUB_STORAGE_DIR",
+        str(BASE_DIR)
+    )
+)
 
 
 # ============================================================
@@ -23,7 +43,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ============================================================
 
 RESOURCE_DIR = (
-    BASE_DIR
+    STORAGE_ROOT
     / "data"
     / "resources"
 )
@@ -39,7 +59,7 @@ METADATA_FILE = (
 # ============================================================
 
 CHROMA_DIR = (
-    BASE_DIR
+    STORAGE_ROOT
     / "chroma_db"
 )
 
@@ -49,7 +69,7 @@ CHROMA_DIR = (
 # ============================================================
 
 DATABASE_FILE = (
-    BASE_DIR
+    STORAGE_ROOT
     / "data"
     / "studyhub.db"
 )

@@ -6,3 +6,4 @@ google-genai
 python-dotenv
 Flask-SQLAlchemy
 Flask-Login
+gunicorn
