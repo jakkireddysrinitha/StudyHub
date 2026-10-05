@@ -7,16 +7,9 @@ __pycache__/
 
 .env
 
+*.db
+
 chroma_db/
 
 data/resources/*
 !data/resources/.gitkeep
-
-.pytest_cache/
-.mypy_cache/
-
-.vscode/
-.idea/
-
-.DS_Store
-Thumbs.db

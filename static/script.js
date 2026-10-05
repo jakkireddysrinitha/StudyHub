@@ -1,6 +1,7 @@
 let allResources = [];
 
 const navItems = document.querySelectorAll(".nav-item");
+
 const pageSections = document.querySelectorAll(".page-section");
 
 const uploadButton = document.getElementById(
@@ -79,6 +80,10 @@ const clearAllButton =
     );
 
 
+// ============================================================
+// INITIAL LOAD
+// ============================================================
+
 document.addEventListener(
     "DOMContentLoaded",
     () => {
@@ -86,6 +91,10 @@ document.addEventListener(
     }
 );
 
+
+// ============================================================
+// NAVIGATION
+// ============================================================
 
 navItems.forEach(
     (item) => {
@@ -118,6 +127,7 @@ document
 
 
 function showPage(pageName) {
+
     navItems.forEach(
         (item) => {
             item.classList.toggle(
@@ -138,7 +148,12 @@ function showPage(pageName) {
 }
 
 
+// ============================================================
+// UPLOAD
+// ============================================================
+
 if (uploadButton) {
+
     uploadButton.addEventListener(
         "click",
         () => {
@@ -149,6 +164,7 @@ if (uploadButton) {
 
 
 if (heroUploadButton) {
+
     heroUploadButton.addEventListener(
         "click",
         () => {
@@ -159,9 +175,11 @@ if (heroUploadButton) {
 
 
 if (fileInput) {
+
     fileInput.addEventListener(
         "change",
         async () => {
+
             if (!fileInput.files.length) {
                 return;
             }
@@ -169,12 +187,12 @@ if (fileInput) {
             const file = fileInput.files[0];
 
             if (
-                file.type !== "application/pdf"
-                &&
+                file.type !== "application/pdf" &&
                 !file.name
                     .toLowerCase()
                     .endsWith(".pdf")
             ) {
+
                 showMessage(
                     "Please select a PDF file.",
                     true
@@ -193,6 +211,7 @@ if (fileInput) {
             );
 
             try {
+
                 showMessage(
                     "Uploading resource..."
                 );
@@ -201,7 +220,8 @@ if (fileInput) {
                     "/api/resources",
                     {
                         method: "POST",
-                        body: formData
+                        body: formData,
+                        cache: "no-store"
                     }
                 );
 
@@ -211,16 +231,20 @@ if (fileInput) {
                 let data;
 
                 try {
+
                     data = JSON.parse(
                         responseText
                     );
+
                 } catch {
+
                     throw new Error(
                         "The server returned an unexpected response."
                     );
                 }
 
                 if (!response.ok) {
+
                     throw new Error(
                         data.error ||
                         "Upload failed."
@@ -234,12 +258,14 @@ if (fileInput) {
                 await loadResources();
 
             } catch (error) {
+
                 showMessage(
                     error.message,
                     true
                 );
 
             } finally {
+
                 fileInput.value = "";
             }
         }
@@ -247,10 +273,23 @@ if (fileInput) {
 }
 
 
+// ============================================================
+// LOAD RESOURCES
+// ============================================================
+
 async function loadResources() {
+
     try {
+
         const response = await fetch(
-            "/api/resources"
+            "/api/resources",
+            {
+                method: "GET",
+                cache: "no-store",
+                headers: {
+                    "Cache-Control": "no-cache"
+                }
+            }
         );
 
         const responseText =
@@ -259,25 +298,39 @@ async function loadResources() {
         let data;
 
         try {
+
             data = JSON.parse(
                 responseText
             );
+
         } catch {
+
             throw new Error(
                 "The server returned an unexpected response."
             );
         }
 
         if (!response.ok) {
+
             throw new Error(
                 data.error ||
                 "Failed to load resources."
             );
         }
 
+        // Completely replace the old in-memory list.
         allResources = Array.isArray(data)
-            ? data
+            ? [...data]
             : [];
+
+        // Clear previous rendered content.
+        if (resourceGrid) {
+            resourceGrid.innerHTML = "";
+        }
+
+        if (recentResourcesContainer) {
+            recentResourcesContainer.innerHTML = "";
+        }
 
         updateDashboard();
 
@@ -290,16 +343,59 @@ async function loadResources() {
         renderRecentResources();
 
     } catch (error) {
-        showMessage(
-            error.message,
-            true
-        );
+
+        // Make sure old resources cannot remain
+        // visible if loading fails.
+        allResources = [];
+
+        if (resourceGrid) {
+            resourceGrid.innerHTML = "";
+        }
+
+        if (recentResourcesContainer) {
+            recentResourcesContainer.innerHTML = "";
+        }
+
+        updateDashboard();
+
+        populateCategoryFilter();
+
+        populateAssistantFilter();
+
+        if (
+            error.message !==
+            "Authentication required."
+        ) {
+
+            showMessage(
+                error.message,
+                true
+            );
+        }
     }
 }
 
 
+// ============================================================
+// PAGE RESTORE / ACCOUNT SWITCH
+// ============================================================
+
+window.addEventListener(
+    "pageshow",
+    () => {
+        loadResources();
+    }
+);
+
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+
 function updateDashboard() {
+
     if (totalResources) {
+
         totalResources.textContent =
             allResources.length;
     }
@@ -316,13 +412,19 @@ function updateDashboard() {
     ];
 
     if (totalCategories) {
+
         totalCategories.textContent =
             categories.length;
     }
 }
 
 
+// ============================================================
+// CATEGORY FILTER
+// ============================================================
+
 function populateCategoryFilter() {
+
     if (!categoryFilter) {
         return;
     }
@@ -349,11 +451,17 @@ function populateCategoryFilter() {
 
     categories.forEach(
         (category) => {
-            const option =
-                document.createElement("option");
 
-            option.value = category;
-            option.textContent = category;
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                category;
+
+            option.textContent =
+                category;
 
             categoryFilter.appendChild(
                 option
@@ -366,13 +474,19 @@ function populateCategoryFilter() {
             currentValue
         )
     ) {
+
         categoryFilter.value =
             currentValue;
     }
 }
 
 
+// ============================================================
+// ASSISTANT RESOURCE FILTER
+// ============================================================
+
 function populateAssistantFilter() {
+
     if (!assistantResourceFilter) {
         return;
     }
@@ -388,8 +502,11 @@ function populateAssistantFilter() {
 
     allResources.forEach(
         (resource) => {
+
             const option =
-                document.createElement("option");
+                document.createElement(
+                    "option"
+                );
 
             option.value =
                 resource.name;
@@ -403,19 +520,26 @@ function populateAssistantFilter() {
         }
     );
 
-    const exists = allResources.some(
-        (resource) =>
-            resource.name === currentValue
-    );
+    const exists =
+        allResources.some(
+            (resource) =>
+                resource.name === currentValue
+        );
 
     if (exists) {
+
         assistantResourceFilter.value =
             currentValue;
     }
 }
 
 
+// ============================================================
+// RENDER RESOURCES
+// ============================================================
+
 function renderResources() {
+
     if (!resourceGrid) {
         return;
     }
@@ -432,6 +556,7 @@ function renderResources() {
     const filteredResources =
         allResources.filter(
             (resource) => {
+
                 const name = (
                     resource.name || ""
                 ).toLowerCase();
@@ -458,8 +583,10 @@ function renderResources() {
         );
 
     if (!filteredResources.length) {
+
         resourceGrid.innerHTML = `
             <div class="empty-state">
+
                 <div class="empty-state-icon">
                     📚
                 </div>
@@ -471,6 +598,7 @@ function renderResources() {
                 <p>
                     Upload a PDF or change your search filters.
                 </p>
+
             </div>
         `;
 
@@ -487,7 +615,12 @@ function renderResources() {
 }
 
 
+// ============================================================
+// RECENT RESOURCES
+// ============================================================
+
 function renderRecentResources() {
+
     if (!recentResourcesContainer) {
         return;
     }
@@ -509,8 +642,10 @@ function renderRecentResources() {
             );
 
     if (!recentResources.length) {
+
         recentResourcesContainer.innerHTML = `
             <div class="empty-state">
+
                 <div class="empty-state-icon">
                     📄
                 </div>
@@ -522,6 +657,7 @@ function renderRecentResources() {
                 <p>
                     Upload your first PDF to get started.
                 </p>
+
             </div>
         `;
 
@@ -540,12 +676,19 @@ function renderRecentResources() {
 }
 
 
+// ============================================================
+// RESOURCE CARD
+// ============================================================
+
 function createResourceCard(resource) {
+
     const filename =
-        resource.name || "Untitled PDF";
+        resource.name ||
+        "Untitled PDF";
 
     const category =
-        resource.category || "General Study";
+        resource.category ||
+        "General Study";
 
     const size =
         formatFileSize(
@@ -553,7 +696,8 @@ function createResourceCard(resource) {
         );
 
     const uploadedAt =
-        resource.uploaded_at || "";
+        resource.uploaded_at ||
+        "";
 
     return `
         <article class="resource-card">
@@ -636,28 +780,38 @@ function createResourceCard(resource) {
 }
 
 
+// ============================================================
+// FILE SIZE
+// ============================================================
+
 function formatFileSize(bytes) {
+
     if (
         bytes === undefined ||
         bytes === null ||
         Number.isNaN(Number(bytes))
     ) {
+
         return "Unknown size";
     }
 
-    const size = Number(bytes);
+    const size =
+        Number(bytes);
 
     if (size < 1024) {
+
         return `${size} B`;
     }
 
     if (size < 1024 * 1024) {
+
         return `${(
             size / 1024
         ).toFixed(1)} KB`;
     }
 
     if (size < 1024 * 1024 * 1024) {
+
         return `${(
             size / (1024 * 1024)
         ).toFixed(1)} MB`;
@@ -669,7 +823,12 @@ function formatFileSize(bytes) {
 }
 
 
+// ============================================================
+// PDF PREVIEW
+// ============================================================
+
 function previewResource(filename) {
+
     const modal =
         document.getElementById(
             "preview-modal"
@@ -690,6 +849,7 @@ function previewResource(filename) {
         !frame ||
         !title
     ) {
+
         return;
     }
 
@@ -706,6 +866,7 @@ function previewResource(filename) {
 
 
 function closePreview() {
+
     const modal =
         document.getElementById(
             "preview-modal"
@@ -717,12 +878,14 @@ function closePreview() {
         );
 
     if (modal) {
+
         modal.classList.remove(
             "active"
         );
     }
 
     if (frame) {
+
         frame.src = "";
     }
 }
@@ -740,6 +903,7 @@ const previewClose =
 
 
 if (previewClose) {
+
     previewClose.addEventListener(
         "click",
         closePreview
@@ -748,13 +912,16 @@ if (previewClose) {
 
 
 if (previewModal) {
+
     previewModal.addEventListener(
         "click",
         (event) => {
+
             if (
                 event.target ===
                 previewModal
             ) {
+
                 closePreview();
             }
         }
@@ -765,28 +932,42 @@ if (previewModal) {
 document.addEventListener(
     "keydown",
     (event) => {
+
         if (
             event.key ===
             "Escape"
         ) {
+
             closePreview();
         }
     }
 );
 
 
+// ============================================================
+// DOWNLOAD
+// ============================================================
+
 function downloadResource(filename) {
+
     window.location.href =
         `/api/resources/${encodeURIComponent(filename)}/download`;
 }
 
 
+// ============================================================
+// DELETE ONE RESOURCE
+// ============================================================
+
 async function deleteResource(filename) {
+
     try {
+
         const response = await fetch(
             `/api/resources/${encodeURIComponent(filename)}`,
             {
-                method: "DELETE"
+                method: "DELETE",
+                cache: "no-store"
             }
         );
 
@@ -796,16 +977,20 @@ async function deleteResource(filename) {
         let data;
 
         try {
+
             data = JSON.parse(
                 responseText
             );
+
         } catch {
+
             throw new Error(
                 "The server returned an unexpected response."
             );
         }
 
         if (!response.ok) {
+
             throw new Error(
                 data.error ||
                 "Failed to delete resource."
@@ -819,6 +1004,7 @@ async function deleteResource(filename) {
         await loadResources();
 
     } catch (error) {
+
         showMessage(
             error.message,
             true
@@ -827,7 +1013,12 @@ async function deleteResource(filename) {
 }
 
 
+// ============================================================
+// SEARCH
+// ============================================================
+
 if (resourceSearch) {
+
     resourceSearch.addEventListener(
         "input",
         renderResources
@@ -836,6 +1027,7 @@ if (resourceSearch) {
 
 
 if (categoryFilter) {
+
     categoryFilter.addEventListener(
         "change",
         renderResources
@@ -843,11 +1035,18 @@ if (categoryFilter) {
 }
 
 
+// ============================================================
+// CLEAR ALL
+// ============================================================
+
 if (clearAllButton) {
+
     clearAllButton.addEventListener(
         "click",
         async () => {
+
             if (!allResources.length) {
+
                 showMessage(
                     "There are no resources to delete.",
                     true
@@ -862,10 +1061,12 @@ if (clearAllButton) {
                 "Clearing...";
 
             try {
+
                 const response = await fetch(
                     "/api/resources",
                     {
-                        method: "DELETE"
+                        method: "DELETE",
+                        cache: "no-store"
                     }
                 );
 
@@ -875,16 +1076,20 @@ if (clearAllButton) {
                 let data;
 
                 try {
+
                     data = JSON.parse(
                         responseText
                     );
+
                 } catch {
+
                     throw new Error(
                         "The server returned an unexpected response."
                     );
                 }
 
                 if (!response.ok) {
+
                     throw new Error(
                         data.error ||
                         "Failed to clear resources."
@@ -898,12 +1103,14 @@ if (clearAllButton) {
                 await loadResources();
 
             } catch (error) {
+
                 showMessage(
                     error.message,
                     true
                 );
 
             } finally {
+
                 clearAllButton.disabled =
                     false;
 
@@ -915,12 +1122,18 @@ if (clearAllButton) {
 }
 
 
+// ============================================================
+// ASK AI
+// ============================================================
+
 async function askAI() {
+
     const question = (
         questionInput?.value || ""
     ).trim();
 
     if (!question) {
+
         showMessage(
             "Please enter a question.",
             true
@@ -942,10 +1155,12 @@ async function askAI() {
         appendThinkingMessage();
 
     askButton.disabled = true;
+
     askButton.textContent =
         "Thinking...";
 
     try {
+
         const response = await fetch(
             "/api/ask",
             {
@@ -968,16 +1183,20 @@ async function askAI() {
         let data;
 
         try {
+
             data = JSON.parse(
                 responseText
             );
+
         } catch {
+
             throw new Error(
                 "The server returned an unexpected response."
             );
         }
 
         if (!response.ok) {
+
             throw new Error(
                 data.error ||
                 "The AI assistant could not answer."
@@ -994,6 +1213,7 @@ async function askAI() {
         );
 
     } catch (error) {
+
         removeThinkingMessage(
             thinkingMessage
         );
@@ -1004,6 +1224,7 @@ async function askAI() {
         );
 
     } finally {
+
         askButton.disabled = false;
 
         askButton.textContent =
@@ -1013,6 +1234,7 @@ async function askAI() {
 
 
 if (askButton) {
+
     askButton.addEventListener(
         "click",
         askAI
@@ -1021,13 +1243,16 @@ if (askButton) {
 
 
 if (questionInput) {
+
     questionInput.addEventListener(
         "keydown",
         (event) => {
+
             if (
                 event.ctrlKey &&
                 event.key === "Enter"
             ) {
+
                 event.preventDefault();
 
                 askAI();
@@ -1037,7 +1262,12 @@ if (questionInput) {
 }
 
 
+// ============================================================
+// CHAT
+// ============================================================
+
 function appendUserMessage(message) {
+
     if (!chatHistory) {
         return;
     }
@@ -1045,7 +1275,9 @@ function appendUserMessage(message) {
     removeEmptyChat();
 
     const bubble =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     bubble.className =
         "chat-message user-message";
@@ -1056,6 +1288,7 @@ function appendUserMessage(message) {
         </div>
 
         <div class="chat-content">
+
             <div class="chat-label">
                 You
             </div>
@@ -1063,6 +1296,7 @@ function appendUserMessage(message) {
             <div class="chat-bubble">
                 ${escapeHtml(message)}
             </div>
+
         </div>
     `;
 
@@ -1078,6 +1312,7 @@ function appendAIMessage(
     message,
     sources
 ) {
+
     if (!chatHistory) {
         return;
     }
@@ -1085,7 +1320,9 @@ function appendAIMessage(
     removeEmptyChat();
 
     const bubble =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     bubble.className =
         "chat-message ai-message";
@@ -1094,6 +1331,7 @@ function appendAIMessage(
         sources.length
             ? `
                 <div class="source-tags">
+
                     ${sources
                         .map(
                             (source) => `
@@ -1103,6 +1341,7 @@ function appendAIMessage(
                             `
                         )
                         .join("")}
+
                 </div>
             `
             : "";
@@ -1136,6 +1375,7 @@ function appendAIMessage(
 
 
 function appendThinkingMessage() {
+
     if (!chatHistory) {
         return null;
     }
@@ -1143,7 +1383,9 @@ function appendThinkingMessage() {
     removeEmptyChat();
 
     const bubble =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     bubble.className =
         "chat-message ai-message thinking-message";
@@ -1179,10 +1421,12 @@ function appendThinkingMessage() {
 function removeThinkingMessage(
     element
 ) {
+
     if (
         element &&
         element.parentNode
     ) {
+
         element.parentNode.removeChild(
             element
         );
@@ -1191,11 +1435,15 @@ function removeThinkingMessage(
 
 
 if (clearQuestionButton) {
+
     clearQuestionButton.addEventListener(
         "click",
         () => {
+
             if (questionInput) {
+
                 questionInput.value = "";
+
                 questionInput.focus();
             }
         }
@@ -1204,15 +1452,18 @@ if (clearQuestionButton) {
 
 
 if (clearChatButton) {
+
     clearChatButton.addEventListener(
         "click",
         () => {
+
             if (!chatHistory) {
                 return;
             }
 
             chatHistory.innerHTML = `
                 <div class="empty-chat">
+
                     <div class="empty-chat-icon">
                         ✨
                     </div>
@@ -1225,6 +1476,7 @@ if (clearChatButton) {
                         Questions will be answered using
                         your uploaded study materials.
                     </p>
+
                 </div>
             `;
         }
@@ -1232,16 +1484,26 @@ if (clearChatButton) {
 }
 
 
+// ============================================================
+// SUMMARY
+// ============================================================
+
 async function summarizeResource(
     filename
 ) {
+
     try {
+
         showMessage(
             "Generating summary..."
         );
 
         const response = await fetch(
-            `/api/resources/${encodeURIComponent(filename)}/summary`
+            `/api/resources/${encodeURIComponent(filename)}/summary`,
+            {
+                method: "GET",
+                cache: "no-store"
+            }
         );
 
         const responseText =
@@ -1250,16 +1512,20 @@ async function summarizeResource(
         let data;
 
         try {
+
             data = JSON.parse(
                 responseText
             );
+
         } catch {
+
             throw new Error(
                 "The server returned an unexpected response."
             );
         }
 
         if (!response.ok) {
+
             throw new Error(
                 data.error ||
                 "Failed to generate summary."
@@ -1273,6 +1539,7 @@ async function summarizeResource(
             );
 
         if (!summaryWindow) {
+
             throw new Error(
                 "Please allow popups to view the summary."
             );
@@ -1303,48 +1570,67 @@ async function summarizeResource(
                     }
 
                     body {
+
                         margin: 0;
+
                         padding: 40px 20px;
+
                         background: #f3f6fa;
+
                         font-family:
                             Arial,
                             Helvetica,
                             sans-serif;
+
                         color: #1f2937;
+
                         line-height: 1.7;
                     }
 
                     .summary-container {
+
                         max-width: 900px;
+
                         margin: 0 auto;
+
                         background: #ffffff;
+
                         border-radius: 18px;
+
                         padding: 40px;
+
                         box-shadow:
                             0 20px 50px
                             rgba(30, 58, 95, 0.10);
                     }
 
                     h1 {
+
                         margin-top: 0;
+
                         color: #1e3a5f;
                     }
 
                     h2,
                     h3 {
+
                         color: #1e3a5f;
                     }
 
                     ul {
+
                         padding-left: 24px;
                     }
 
                     strong {
+
                         color: #1e3a5f;
                     }
 
                     @media (max-width: 700px) {
+
                         .summary-container {
+
                             padding: 24px;
                         }
                     }
@@ -1375,6 +1661,7 @@ async function summarizeResource(
         summaryWindow.document.close();
 
     } catch (error) {
+
         showMessage(
             error.message,
             true
@@ -1383,7 +1670,12 @@ async function summarizeResource(
 }
 
 
+// ============================================================
+// CHAT HELPERS
+// ============================================================
+
 function removeEmptyChat() {
+
     const emptyChat =
         chatHistory?.querySelector(
             ".empty-chat"
@@ -1396,6 +1688,7 @@ function removeEmptyChat() {
 
 
 function scrollChatToBottom() {
+
     if (!chatHistory) {
         return;
     }
@@ -1405,7 +1698,12 @@ function scrollChatToBottom() {
 }
 
 
+// ============================================================
+// AI TEXT FORMATTING
+// ============================================================
+
 function formatAIText(text) {
+
     const safeText =
         escapeHtml(
             text || ""
@@ -1443,10 +1741,15 @@ function formatAIText(text) {
 }
 
 
+// ============================================================
+// MESSAGE
+// ============================================================
+
 function showMessage(
     message,
     isError = false
 ) {
+
     const existing =
         document.querySelector(
             ".app-message"
@@ -1457,7 +1760,9 @@ function showMessage(
     }
 
     const element =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     element.className =
         `app-message ${
@@ -1475,24 +1780,35 @@ function showMessage(
 
     setTimeout(
         () => {
+
             element.classList.add(
                 "hide"
             );
 
             setTimeout(
                 () => {
+
                     element.remove();
+
                 },
                 300
             );
+
         },
         3000
     );
 }
 
 
+// ============================================================
+// HTML ESCAPING
+// ============================================================
+
 function escapeHtml(value) {
-    return String(value ?? "")
+
+    return String(
+        value ?? ""
+    )
         .replace(
             /&/g,
             "&amp;"
