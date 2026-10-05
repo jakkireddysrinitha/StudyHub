@@ -4,3 +4,5 @@ chromadb
 sentence-transformers
 google-genai
 python-dotenv
+Flask-SQLAlchemy
+Flask-Login
