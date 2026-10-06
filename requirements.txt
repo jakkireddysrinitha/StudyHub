@@ -1,9 +1,11 @@
-Flask
-pypdf
+streamlit
 chromadb
-sentence-transformers
 google-genai
+pypdf
+sentence-transformers
 python-dotenv
-Flask-SQLAlchemy
+
+Flask
 Flask-Login
+Flask-SQLAlchemy
 gunicorn
