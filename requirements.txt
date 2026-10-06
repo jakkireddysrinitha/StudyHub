@@ -4,8 +4,3 @@ google-genai
 pypdf
 sentence-transformers
 python-dotenv
-
-Flask
-Flask-Login
-Flask-SQLAlchemy
-gunicorn
